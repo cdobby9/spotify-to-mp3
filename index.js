@@ -26,7 +26,7 @@ async function getSpotifyToken() {
 
 async function searchYouTube(title, artist) {
     const { YOUTUBE_API_KEY } = process.env;
-    const query = `${title} ${artist}`;
+    const query = `${title} ${artist} Official Audio`;
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
         params: {
             key: YOUTUBE_API_KEY,
@@ -99,7 +99,7 @@ app.get('/download-playlist', async (req, res) => {
             console.log(`ZIP created with ${archive.pointer()} total bytes`);
             res.download(zipPath, `${sanitizedPlaylistName}.zip`, () => {
                 // Clean up after download
-                fs.rmdirSync(downloadDir, { recursive: true });
+                fs.rmSync(downloadDir, { recursive: true, force: true }); // Updated to fs.rm
                 fs.unlinkSync(zipPath);
             });
         });
