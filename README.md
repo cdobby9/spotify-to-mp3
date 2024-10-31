@@ -1,6 +1,5 @@
 # Spotify Playlist to MP3 Downloader
 
-![Project Logo](https://via.placeholder.com/150)  <!-- Replace with a real logo if you have one -->
 
 ## Overview
 
@@ -13,7 +12,7 @@ This project is a web application that allows users to convert Spotify playlists
 - Compresses all downloaded MP3 files into a single ZIP file named after the Spotify playlist.
 - Simple and intuitive interface for seamless user experience.
 
-## Tech Stack
+## Stack Used
 - **Node.js**: Server-side JavaScript runtime.
 - **Express**: Web framework for Node.js.
 - **Axios**: Promise-based HTTP client for making requests.
@@ -22,7 +21,7 @@ This project is a web application that allows users to convert Spotify playlists
 - **Spotify API**: To access playlist data.
 - **YouTube Data API**: To search for videos based on song titles and artists.
 
-## Installation
+## Use locally
 
 ### Prerequisites
 - **Node.js** and **npm**: Make sure you have Node.js installed. You can download it from [nodejs.org](https://nodejs.org/).
@@ -30,7 +29,7 @@ This project is a web application that allows users to convert Spotify playlists
 ### Getting Started
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/spotify-playlist-to-mp3-downloader.git
+    git clone https://github.com/cdobby9/spotify-playlist-to-mp3-downloader.git
     cd spotify-playlist-to-mp3-downloader
     ```
 
@@ -60,3 +59,10 @@ This project is a web application that allows users to convert Spotify playlists
 
 ## Usage
 - To download a Spotify playlist, append the playlist URL to the endpoint:
+
+## Troubleshooting
+- If you encounter issues with downloading, ensure that the Spotify and YouTube API keys are valid and properly configured.
+- Check that `yt-dlp` is correctly installed and available in your system's PATH.
+
+## Contributing
+Contributions are welcome! If you have suggestions or improvements, feel free to open an issue or submit a pull request.
