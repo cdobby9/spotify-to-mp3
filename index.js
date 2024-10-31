@@ -61,11 +61,18 @@ app.get('/download-playlist', async (req, res) => {
         const playlistId = playlistUrl.split('/').pop().split('?')[0];
         const token = await getSpotifyToken();
         
-        const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        // Fetch playlist details to get the playlist name
+        const playlistResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const playlistName = playlistResponse.data.name; // Get the playlist name
+        
+        const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        const tracks = await Promise.all(response.data.items.map(async item => {
+        const tracks = await Promise.all(tracksResponse.data.items.map(async item => {
             const title = item.track.name;
             const artist = item.track.artists[0].name;
             const youtubeUrl = await searchYouTube(title, artist);
@@ -82,14 +89,15 @@ app.get('/download-playlist', async (req, res) => {
             await downloadAndConvertToMp3(track.youtubeUrl, outputPath);
         }
 
-        // Create a ZIP file of all MP3 files
-        const zipPath = path.join(__dirname, 'playlist.zip');
+        // Create a ZIP file of all MP3 files, naming it after the playlist
+        const sanitizedPlaylistName = playlistName.replace(/[<>:"/\\|?*]+/g, '_'); // Sanitize the playlist name
+        const zipPath = path.join(__dirname, `${sanitizedPlaylistName}.zip`);
         const output = fs.createWriteStream(zipPath);
         const archive = archiver('zip');
 
         output.on('close', () => {
             console.log(`ZIP created with ${archive.pointer()} total bytes`);
-            res.download(zipPath, 'playlist.zip', () => {
+            res.download(zipPath, `${sanitizedPlaylistName}.zip`, () => {
                 // Clean up after download
                 fs.rmdirSync(downloadDir, { recursive: true });
                 fs.unlinkSync(zipPath);
