@@ -35,7 +35,7 @@ async function getSpotifyToken() {
 
 async function searchYouTube(title, artist) {
     const { YOUTUBE_API_KEY } = process.env;
-    const query = `${title} ${artist} Offcial Audio`;
+    const query = `${title} ${artist}`;
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
         params: {
             key: YOUTUBE_API_KEY,
@@ -90,7 +90,7 @@ app.post('/download-playlist', async (req, res) => {
         const downloadDir = path.join(__dirname, 'downloads');
         if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
 
-        // Process all tracks concurrently
+        // Download and convert each track to MP3 concurrently
         const downloadPromises = tracks.map((track, index) => {
             const outputPath = path.join(downloadDir, `${track.title}-${track.artist}.mp3`);
             
@@ -102,13 +102,14 @@ app.post('/download-playlist', async (req, res) => {
                     percentage: Math.round(((index + 1) / tracks.length) * 100)
                 });
                 console.log(progressMessage);
+                return outputPath; // Return path to ensure ordering
             });
         });
 
-        // Wait for all downloads and conversions to finish
-        await Promise.all(downloadPromises);
+        // Wait for all downloads to complete and get ordered paths
+        const orderedPaths = await Promise.all(downloadPromises);
 
-        // Create a ZIP file of all MP3 files
+        // Create a ZIP file with MP3 files in the same order as the Spotify playlist
         const sanitizedPlaylistName = playlistName.replace(/[<>:"/\\|?*]+/g, '_'); 
         const zipPath = path.join(__dirname, `${sanitizedPlaylistName}.zip`);
         const output = fs.createWriteStream(zipPath);
@@ -119,7 +120,13 @@ app.post('/download-playlist', async (req, res) => {
         });
 
         archive.pipe(output);
-        archive.directory(downloadDir, false);
+
+        // Add files to the archive in order
+        for (const filePath of orderedPaths) {
+            const fileName = path.basename(filePath);
+            archive.file(filePath, { name: fileName });
+        }
+
         await archive.finalize();
 
         // Notify client of completion
