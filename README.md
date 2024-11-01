@@ -30,7 +30,7 @@ This project is a web application that allows users to convert Spotify playlists
 1. **Clone the repository**:
     ```bash
     git clone https://github.com/cdobby9/spotify-to-mp3.git
-    cd spotify-playlist-to-mp3-downloader
+    cd spotify-to-mp3
     ```
 
 2. **Install dependencies**:
