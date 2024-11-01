@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css" />
+    <title>Spotify Playlist to MP3 Downloader</title>
+</head>
+
+<body>
+    <h1>Spotify Playlist to MP3 Downloader</h1>
+    <input type="text" id="spotifyUrl" placeholder="Paste Spotify Playlist URL here"
+        style="width: 300px; padding: 8px;">
+    <button onclick="downloadPlaylist()">Enter</button>
+
+    <div id="loading-bar">
+        <div id="progress"></div>
+    </div>
+
+    <p id="status"></p>
+
+    <!-- Include Socket.IO library and our script.js file -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
