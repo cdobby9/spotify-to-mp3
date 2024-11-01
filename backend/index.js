@@ -1,5 +1,3 @@
-// Go to http://localhost:3000/download-playlist?playlistUrl=
-
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -15,7 +13,7 @@ const server = http.createServer(app);
 const io = socketIo(server);
 const PORT = 3000;
 
-// Serve static files from the root directory
+app.use(express.json());
 app.use(express.static(path.join(__dirname, '..'))); // Serves index.html and script.js
 
 io.on('connection', (socket) => {
@@ -37,7 +35,7 @@ async function getSpotifyToken() {
 
 async function searchYouTube(title, artist) {
     const { YOUTUBE_API_KEY } = process.env;
-    const query = `${title} ${artist} Official Audio`;
+    const query = `${title} ${artist}`;
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
         params: {
             key: YOUTUBE_API_KEY,
@@ -65,13 +63,14 @@ async function downloadAndConvertToMp3(youtubeUrl, outputPath) {
 }
 
 app.post('/download-playlist', async (req, res) => {
-    const socketId = req.body.socketId;
+    const socketId = req.body.socketId; // Get the socket ID from the request
     const playlistUrl = req.body.playlistUrl;
 
     try {
         const playlistId = playlistUrl.split('/').pop().split('?')[0];
         const token = await getSpotifyToken();
         
+        // Fetch playlist details
         const playlistResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -88,7 +87,7 @@ app.post('/download-playlist', async (req, res) => {
             return { title, artist, youtubeUrl };
         }));
 
-        // Updated download directory path
+        // Prepare temporary folder for MP3 files
         const downloadDir = path.join(__dirname, 'downloads');
         if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
 
@@ -96,12 +95,16 @@ app.post('/download-playlist', async (req, res) => {
             const outputPath = path.join(downloadDir, `${track.title}-${track.artist}.mp3`);
             await downloadAndConvertToMp3(track.youtubeUrl, outputPath);
 
+            // Emit and log progress
+            const progressMessage = `Downloaded ${track.title} by ${track.artist}`;
             io.to(socketId).emit('progress', {
-                message: `Downloaded ${track.title} by ${track.artist}`,
+                message: progressMessage,
                 percentage: Math.round(((index + 1) / tracks.length) * 100)
             });
+            console.log(progressMessage);
         }
 
+        // Create a ZIP file of all MP3 files
         const sanitizedPlaylistName = playlistName.replace(/[<>:"/\\|?*]+/g, '_'); 
         const zipPath = path.join(__dirname, `${sanitizedPlaylistName}.zip`);
         const output = fs.createWriteStream(zipPath);
@@ -115,6 +118,7 @@ app.post('/download-playlist', async (req, res) => {
         archive.directory(downloadDir, false);
         await archive.finalize();
 
+        // Notify client of completion
         io.to(socketId).emit('complete', { url: `/download/${sanitizedPlaylistName}.zip` });
 
         res.json({ message: 'Processing complete', zipPath: zipPath });
@@ -124,13 +128,25 @@ app.post('/download-playlist', async (req, res) => {
     }
 });
 
-// Updated download route
+// Serve the generated ZIP file and delay cleanup
 app.get('/download/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(__dirname, filename);
+    
     res.download(filePath, filename, (err) => {
-        if (err) console.error(err);
-        fs.unlinkSync(filePath);
+        if (err) {
+            console.error(err);
+        } else {
+            // Delay cleanup by 5 seconds to ensure the file is fully downloaded
+            setTimeout(() => {
+                try {
+                    fs.unlinkSync(filePath); // Clean up after download
+                    console.log(`Successfully deleted ${filename}`);
+                } catch (error) {
+                    console.error(`Failed to delete ${filename}:`, error);
+                }
+            }, 5000); // 5000 ms delay
+        }
     });
 });
 

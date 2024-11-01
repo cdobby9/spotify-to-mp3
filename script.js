@@ -43,11 +43,18 @@ socket.on('progress', (data) => {
 // Listen for completion
 socket.on('complete', (data) => {
     const status = document.getElementById('status');
+    
+    // Create a download link for the ZIP file
     const link = document.createElement('a');
     link.href = data.url;
     link.textContent = 'Download ZIP';
     link.style.display = 'block';
     link.style.marginTop = '20px';
+    link.setAttribute('download', 'playlist.zip'); // Prompts download
+    
     status.textContent = 'Processing complete! ';
     status.appendChild(link);
+
+    // Automatically click the link to prompt the download
+    link.click();
 });
