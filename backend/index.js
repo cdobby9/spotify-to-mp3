@@ -35,7 +35,7 @@ async function getSpotifyToken() {
 
 async function searchYouTube(title, artist) {
     const { YOUTUBE_API_KEY } = process.env;
-    const query = `${title} ${artist}`;
+    const query = `${title} ${artist} Offcial Audio`;
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
         params: {
             key: YOUTUBE_API_KEY,
@@ -48,7 +48,7 @@ async function searchYouTube(title, artist) {
     return `https://www.youtube.com/watch?v=${response.data.items[0].id.videoId}`;
 }
 
-async function downloadAndConvertToMp3(youtubeUrl, outputPath) {
+function downloadAndConvertToMp3(youtubeUrl, outputPath) {
     return new Promise((resolve, reject) => {
         const command = `yt-dlp -x --audio-format mp3 -o "${outputPath}" "${youtubeUrl}"`;
 
@@ -63,14 +63,13 @@ async function downloadAndConvertToMp3(youtubeUrl, outputPath) {
 }
 
 app.post('/download-playlist', async (req, res) => {
-    const socketId = req.body.socketId; // Get the socket ID from the request
+    const socketId = req.body.socketId;
     const playlistUrl = req.body.playlistUrl;
 
     try {
         const playlistId = playlistUrl.split('/').pop().split('?')[0];
         const token = await getSpotifyToken();
         
-        // Fetch playlist details
         const playlistResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -91,18 +90,23 @@ app.post('/download-playlist', async (req, res) => {
         const downloadDir = path.join(__dirname, 'downloads');
         if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
 
-        for (const [index, track] of tracks.entries()) {
+        // Process all tracks concurrently
+        const downloadPromises = tracks.map((track, index) => {
             const outputPath = path.join(downloadDir, `${track.title}-${track.artist}.mp3`);
-            await downloadAndConvertToMp3(track.youtubeUrl, outputPath);
-
-            // Emit and log progress
-            const progressMessage = `Downloaded ${track.title} by ${track.artist}`;
-            io.to(socketId).emit('progress', {
-                message: progressMessage,
-                percentage: Math.round(((index + 1) / tracks.length) * 100)
+            
+            return downloadAndConvertToMp3(track.youtubeUrl, outputPath).then(() => {
+                // Emit and log progress for each completed download
+                const progressMessage = `Downloaded ${track.title} by ${track.artist}`;
+                io.to(socketId).emit('progress', {
+                    message: progressMessage,
+                    percentage: Math.round(((index + 1) / tracks.length) * 100)
+                });
+                console.log(progressMessage);
             });
-            console.log(progressMessage);
-        }
+        });
+
+        // Wait for all downloads and conversions to finish
+        await Promise.all(downloadPromises);
 
         // Create a ZIP file of all MP3 files
         const sanitizedPlaylistName = playlistName.replace(/[<>:"/\\|?*]+/g, '_'); 
@@ -140,8 +144,24 @@ app.get('/download/:filename', (req, res) => {
             // Delay cleanup by 5 seconds to ensure the file is fully downloaded
             setTimeout(() => {
                 try {
-                    fs.unlinkSync(filePath); // Clean up after download
+                    // Clean up the ZIP file
+                    fs.unlinkSync(filePath);
                     console.log(`Successfully deleted ${filename}`);
+
+                    // Clean up the downloads folder by removing all MP3 files
+                    const downloadDir = path.join(__dirname, 'downloads');
+                    fs.readdir(downloadDir, (err, files) => {
+                        if (err) console.error(`Error reading downloads directory: ${err}`);
+                        else {
+                            files.forEach(file => {
+                                const mp3FilePath = path.join(downloadDir, file);
+                                fs.unlink(mp3FilePath, (err) => {
+                                    if (err) console.error(`Failed to delete ${mp3FilePath}: ${err}`);
+                                    else console.log(`Deleted ${mp3FilePath}`);
+                                });
+                            });
+                        }
+                    });
                 } catch (error) {
                     console.error(`Failed to delete ${filename}:`, error);
                 }
