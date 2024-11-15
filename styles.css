@@ -1,9 +1,102 @@
+@font-face {
+    font-family: 'Font-Bold';
+    src: url('/fonts/CircularSpotifyTxT-Bold.woff2');
+  }
+
+*, ::after, ::before {
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+*:focus {
+    outline: none;
+}
+
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: Spotify;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    background-color: #171313;
 }
+
+
+.content {
+    display: grid;
+    padding: 4rem;
+    grid-row-gap: 11.5rem;
+    text-align: left;
+    grid-template-columns: repeat(12,1fr);
+    gap: 1.5rem;
+}
+
+.main-text {
+    font-size: 64px;
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.08;
+    font-family: Font-Bold;
+    grid-column: span 12;
+
+}
+
+.input-container {
+    grid-column: 8/span 5;
+}
+
+.input-box {
+    display: flex;
+  justify-content: space-between;
+  max-width: 28rem;
+  margin: 0 auto;
+  color: #fff;
+  border-bottom: 1px solid #fff;
+
+}
+
+
+
+.input-box input {
+    line-height: 3rem;
+  width: 85%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  letter-spacing: -.04rem;
+  font-family: Arial;
+}
+
+
+
+
+::placeholder {
+    color: #fff;
+}
+
+.input-box button {
+    height: 3rem;
+  display: flex;
+  align-items: center;
+  padding-top: 11px;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: -.04em;
+  line-height: 1.031;
+  font-family: Font-Bold;
+  background: none;
+  border: none;
+  color: #fff;
+}
+
+
+
+
+
+
+
+
+
 
 #loading-bar {
     width: 100%;
