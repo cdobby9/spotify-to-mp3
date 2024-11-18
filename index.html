@@ -27,22 +27,21 @@
         type="text"
         id="spotifyUrl"
         placeholder="Paste Spotify Playlist URL here"
+        onkeypress="handleKeyPress(event)"
       />
       <button onclick="downloadPlaylist()">Enter</button>
     </div>
 
-
-      <div id="loading-bar">
-        <div id="progress"></div>
-      </div>
-
-      <p id="status"></p>
     </div>
 
 
 
 
+    <div id="loading-bar">
+        <div id="progress"></div>
+      </div>
 
+      <p id="status"></p>
 
 
 
