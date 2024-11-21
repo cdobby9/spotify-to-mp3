@@ -88,7 +88,9 @@ app.post('/download-playlist', async (req, res) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const playlistName = playlistResponse.data.name;
-        
+        const coverImageUrl = playlistResponse.data.images[0]?.url || '';
+
+
         const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -159,6 +161,7 @@ app.post('/download-playlist', async (req, res) => {
         io.to(socketId).emit('complete', { url: `/download/${sanitizedPlaylistName}.zip` });
 
         res.json({ message: 'Processing complete', zipPath: zipPath });
+        res.json({ message: 'Processing complete', coverImageUrl });
     } catch (error) {
         console.error('Error processing playlist:', error.message);
         res.status(500).send('Failed to process playlist');

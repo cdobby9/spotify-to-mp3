@@ -1,5 +1,6 @@
 const socket = io(); // Connect to the Socket.IO server
 
+
 async function downloadPlaylist() {
     const spotifyUrl = document.getElementById('spotifyUrl').value;
     const loadingBar = document.getElementById('loading-bar');
@@ -11,7 +12,6 @@ async function downloadPlaylist() {
         return;
     }
 
-    loadingBar.style.display = 'block';
     progress.style.width = '0%';
     status.textContent = 'Processing...';
 
@@ -22,15 +22,28 @@ async function downloadPlaylist() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playlistUrl: spotifyUrl, socketId: socket.id })
         });
-
+    
         if (response.ok) {
+            const data = await response.json();
             status.textContent = 'Download ready!';
+            
+            if (data.success && data.coverImageUrl) {
+                playlistCover.src = data.coverImageUrl;
+                playlistCover.alt = "Playlist Cover";
+            } else {
+                playlistCover.src = "";
+                playlistCover.alt = "Failed to load playlist cover";
+            }
         } else {
             status.textContent = 'Failed to process playlist.';
+            playlistCover.src = "";
+            playlistCover.alt = "Failed to load playlist cover";
         }
     } catch (error) {
         console.error('Error:', error);
         status.textContent = 'An error occurred.';
+        playlistCover.src = "";
+        playlistCover.alt = "Failed to load playlist cover";
     }
 }
 
