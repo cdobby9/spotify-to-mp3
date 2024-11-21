@@ -4,59 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <title>Spotify Playlist to MP3 Downloader</title>
   </head>
 
   <body>
 
-    <div class="nav"></div>
+    <div class="container">
+      <img src="https://placehold.co/300x300" alt="none" id="playlistCover" class="album-cover">
+    
+      <p id="status" class="song-title">Playlist Link:</p>
+    
+      <div class="artist-name"><input
+      type="text"
+      id="spotifyUrl"
+      placeholder="https://open.spotify.com/playlist/"
+      onkeypress="handleKeyPress(event)"
+    /></div>
+      
+          
 
-    <div class="content">
-     
-<div class="main-text">
-    <p>Turn your Spotify Playlists<br>into MP3 files in a ZIP file!</p>
-
-</div>
-
-
-
-    <div class="input-container">
-
-        <div class="input-box">
-      <input
-        type="text"
-        id="spotifyUrl"
-        placeholder="Paste Spotify Playlist URL here"
-        onkeypress="handleKeyPress(event)"
-      />
-      <button id="enterBtn" onclick="downloadPlaylist()">Enter</button>
+        <div id="loading-bar">
+      <div id="progress"></div>
     </div>
-
-    </div>
-
-    <img style="width: 500px; height: 500px;" src="https://placehold.co/300x300" alt="none" id="playlistCover" class="album-cover">
-
-
-    <div id="loading-bar">
-        <div id="progress"></div>
+    
+    <div class="controls">
+          <i class="far fa-heart"></i>
+          <i class="fas fa-step-backward"></i>
+      <button onclick="downloadPlaylist()"> <i style="font-size:30px;" class="fas fa-download"></i></button>
+          <i class="fas fa-step-forward"></i>
+          <i class="fas fa-random"></i>
       </div>
+    
 
-      <p id="status"></p>
-
-
-
-
-
-
-
-
-
-
-</div>
-
-
-
-
+  </div>
 
 
 
